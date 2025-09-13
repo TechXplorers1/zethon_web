@@ -62,7 +62,7 @@ const Contact = () => {
           <div className="map-container">
             <iframe
               title="Google Map"
-              src="https://www.google.com/maps?q=Techxplorers+Pvt+Ltd+new+branch,+Srinagar+Colony,+Anantapur,+India&output=embed"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241.23999546269226!2d77.58268941680078!3d14.665023969118186!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bb14b000831ea13%3A0x9ad7cc5f69a54e24!2sZethon%20Tech%20Private%20limited!5e0!3m2!1sen!2sin!4v1757744268810!5m2!1sen!2sin"
               width="100%"
               height="300"
               style={{ border: 0, marginRight: "50px" }}
