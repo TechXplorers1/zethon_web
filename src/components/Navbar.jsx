@@ -153,8 +153,7 @@ const CustomNavbar = ({ scrolled, aboutRef }) => {
 
             {/* <Nav.Link as={Link} to="/careers" className="nav-link">Careers</Nav.Link> */}
             <Nav.Link as={Link} to="/contact" className="nav-link">Contact</Nav.Link>
-            {/* <Nav.Link as={Link} to="/events" className="nav-link">Events</Nav.Link> */}
-            {/* <Nav.Link as={Link} to="/login" className="nav-link">Login</Nav.Link> */}
+            <Nav.Link as={Link} to="/login" className="nav-link">Login</Nav.Link>
 
           </Nav>
         </Navbar.Collapse>

@@ -19,6 +19,12 @@ import Manufacturing from '../components/pages/industries/Manufacturing';
 import OilGas from '../components/pages/industries/OilGas';
 import Retail from '../components/pages/industries/Retail';
 import Telecommunication from '../components/pages/industries/Telecommunication';
+import LoginPage from '../components/login';
+import SignupPage from '../components/signup';
+import AdminPage from '../components/pages/AdminWorkSheet/AdminPage';
+import ManagerWorkSheet from '../components/pages/ManagerWorksheet';
+import EmployeeData from '../components/pages/Dashboard/EmployeeData';
+import ClientDashboard from '../components/pages/Dashboard/ClientDashboard';
 
 
 
@@ -27,6 +33,12 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<App />} />
       <Route path="/Contact" element={<Contact />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/adminpage" element={<AdminPage />} />
+      <Route path="/managerworksheet" element={<ManagerWorkSheet />} />
+      <Route path="/employees" element={<EmployeeData />} />
+      <Route path="/clientdashboard" element={<ClientDashboard />} />
       <Route element={<ServiceLayout />}>
 
         <Route path="/industries/bfsi" element={<BFSI />} />

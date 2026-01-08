@@ -1,0 +1,266 @@
+/* Light Mode Styles */
+.auth-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  padding: 1rem;
+
+  /* Background Styles matching Home Page */
+  background-image: url('../assets/loop.gif');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-page-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+/* Ensure content sits above the overlay */
+.auth-page-wrapper>* {
+  position: relative;
+  z-index: 2;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  background-color: #ffffff;
+  padding: 2.5rem;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  margin: 2rem 0;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.auth-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #0d6efd;
+  transition: color 0.3s ease;
+}
+
+.google-btn {
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  border-color: #ced4da;
+  color: #495057;
+}
+
+.google-btn:hover {
+  background-color: #f1f3f5;
+}
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #adb5bd;
+  margin: 1.5rem 0;
+  transition: color 0.3s ease;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #dee2e6;
+  transition: border-color 0.3s ease;
+}
+
+.or-divider:not(:empty)::before {
+  margin-right: .5em;
+}
+
+.or-divider:not(:empty)::after {
+  margin-left: .5em;
+}
+
+.form-label-modern {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #495057;
+  transition: color 0.3s ease;
+}
+
+.input-group-modern {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+
+.input-group-modern:focus-within {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.input-group-icon {
+  padding: 0.75rem 1rem;
+  color: #6c757d;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+/* --- THIS IS THE FIX --- */
+/* The selector is now more specific, so it only removes the border from inputs inside the auth form's special group. */
+.input-group-modern .form-control-modern {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  flex-grow: 1;
+  padding: 0.75rem 1rem;
+  padding-left: 0 !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.input-group-modern .form-control-modern:focus {
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.password-toggle-icon {
+  cursor: pointer;
+  padding-right: 1rem;
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+.auth-btn-modern {
+  padding: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.auth-btn-modern:hover {
+  transform: translateY(-2px);
+}
+
+.password-hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+.auth-link-text {
+  color: #495057;
+  transition: color 0.3s ease;
+}
+
+.auth-link-accent {
+  color: #007bff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.auth-link-accent:hover {
+  color: #0056b3;
+}
+
+
+/* Dark Mode Styles */
+.dark-mode .auth-page-wrapper {
+  background-color: #1a202c !important;
+}
+
+.dark-mode .auth-card {
+  background-color: #2d3748 !important;
+  border-color: #4a5568 !important;
+}
+
+.dark-mode .auth-title {
+  color: #90cdf4 !important;
+}
+
+.dark-mode .google-btn {
+  background-color: #2d3748 !important;
+  border-color: #4a5568 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .google-btn:hover {
+  background-color: #4a5568 !important;
+}
+
+.dark-mode .or-divider {
+  color: #718096 !important;
+}
+
+.dark-mode .or-divider::before,
+.dark-mode .or-divider::after {
+  border-color: #4a5568 !important;
+}
+
+.dark-mode .form-label-modern {
+  color: #cbd5e1 !important;
+}
+
+.dark-mode .input-group-modern {
+  border-color: #4a5568 !important;
+  background-color: #1f2937 !important;
+}
+
+.dark-mode .input-group-modern:focus-within {
+  border-color: #63b3ed !important;
+  box-shadow: 0 0 0 0.25rem rgba(99, 179, 237, 0.25) !important;
+  background-color: #2d3748 !important;
+}
+
+.dark-mode .input-group-icon,
+.dark-mode .password-toggle-icon {
+  color: #a0aec0 !important;
+}
+
+/* This rule only needs to set the color now, as the background is handled by the parent */
+.dark-mode .input-group-modern .form-control-modern {
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .form-control-modern::placeholder {
+  color: #a0aec0 !important;
+}
+
+.dark-mode .password-hint,
+.dark-mode .auth-link-text {
+  color: #a0aec0 !important;
+}
+
+.dark-mode .auth-link-accent {
+  color: #63b3ed !important;
+}
+
+.dark-mode .auth-link-accent:hover {
+  color: #90cdf4 !important;
+}
+
+.dark-mode .modal-content {
+  background-color: #2d3748 !important;
+  color: #e2e8f0 !important;
+}
+
+.dark-mode .modal-header {
+  border-bottom-color: #4a5568 !important;
+}
+
+.dark-mode .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
