@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { database } from '../../../firebase';
 import { ref, get, update, remove, query, limitToLast } from "firebase/database"; // Added query and limitToLast
 
 const RequestManagement = () => {

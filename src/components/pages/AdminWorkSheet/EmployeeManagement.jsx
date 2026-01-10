@@ -1,5 +1,6 @@
 // In EmployeeManagement.jsx, replace the entire file content with this code.
 import React, { useState, useEffect } from 'react';
+import { database, auth } from '../../../firebase';
 import {
   ref,
   set,
@@ -233,8 +234,8 @@ const EmployeeManagement = () => {
       if (error.code === 'auth/email-already-in-use') {
         alert("This email is already registered.");
       } else {
-        console.error("Error creating employee:", error);
-        alert("Failed to create employee.");
+        console.error("Detailed Error:", error);
+        alert(`Failed to create employee: ${error.message}`);
       }
     } finally {
       setIsCreatingEmployee(false);

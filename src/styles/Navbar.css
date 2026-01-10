@@ -11,9 +11,10 @@
   transition: all 0.4s ease;
 }
 
-h1{
+h1 {
   color: white;
 }
+
 .navbar-custom.scrolled {
   background: rgba(0, 0, 0, 0.95) !important;
   backdrop-filter: blur(10px);
@@ -121,6 +122,7 @@ body {
     margin: 8px 0 !important;
   }
 }
+
 /* Hamburger icon color fix */
 .navbar-custom .navbar-toggler {
   border-color: #00f0ff;

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { database } from '../../../firebase';
+import { ref, get, update, remove, query, limitToLast } from "firebase/database";
 
 const DepartmentManagement = () => {
   // --- State required for Department Management ---
@@ -22,26 +24,26 @@ const DepartmentManagement = () => {
 
   // Employee state is needed to manage assignments
   const [employees, setEmployees] = useState([
-     { 
-        id: 1,name: 'Admin employee', email: 'admin@techxplorers.in', roles: ['admin', 'active', 'Management'],
-        firstName: "Admin", lastName: "employee",
+    {
+      id: 1, name: 'Admin employee', email: 'admin@techxplorers.in', roles: ['admin', 'active', 'Management'],
+      firstName: "Admin", lastName: "employee",
     },
-    { 
-        id: 2, roles: ['manager', 'active', 'Management'], name: 'Sarah Wilson', email: 'sarah.wilson@example.com',
-        firstName: "Sarah", lastName: "Wilson",
-    },  
-    { 
-        id: 3, roles: ['team lead', 'active', 'Tech Placement'], name: 'Michael Johnson', email: 'michael.j@example.com',
-        firstName: "Michael", lastName: "Johnson",
+    {
+      id: 2, roles: ['manager', 'active', 'Management'], name: 'Sarah Wilson', email: 'sarah.wilson@example.com',
+      firstName: "Sarah", lastName: "Wilson",
     },
-    { 
-        id: 4, roles: ['asset manager', 'active', 'Operations'], name: 'Asset Manager',
-        firstName: "Asset", lastName: "Manager",
+    {
+      id: 3, roles: ['team lead', 'active', 'Tech Placement'], name: 'Michael Johnson', email: 'michael.j@example.com',
+      firstName: "Michael", lastName: "Johnson",
     },
-    { 
-        id: 5, roles: ['employee', 'active', 'Development'], name: 'John Employee',
-        firstName: "John", lastName: "Employee",
-    },   
+    {
+      id: 4, roles: ['asset manager', 'active', 'Operations'], name: 'Asset Manager',
+      firstName: "Asset", lastName: "Manager",
+    },
+    {
+      id: 5, roles: ['employee', 'active', 'Development'], name: 'John Employee',
+      firstName: "John", lastName: "Employee",
+    },
   ]);
 
   // Department Modals States
@@ -63,7 +65,7 @@ const DepartmentManagement = () => {
   const [availableEmployeesForDepartment, setAvailableEmployeesForDepartment] = useState([]);
   const [isAddEmployeeToDepartmentModalOpen, setIsAddEmployeeToDepartmentModalOpen] = useState(false);
   const [employeeToAddToDepartment, setEmployeeToAddToDepartment] = useState('');
-  
+
   // Generic Confirmation Modal States
   const [isConfirmUpdateModalOpen, setIsConfirmUpdateModalOpen] = useState(false);
   const [confirmUpdateMessage, setConfirmUpdateMessage] = useState('');
@@ -77,7 +79,7 @@ const DepartmentManagement = () => {
     setDepartmentSearchTerm(event.target.value);
   };
 
-  const filteredDepartments = departments.filter(dept => 
+  const filteredDepartments = departments.filter(dept =>
     dept.name.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
     dept.description.toLowerCase().includes(departmentSearchTerm.toLowerCase()) ||
     dept.head.toLowerCase().includes(departmentSearchTerm.toLowerCase())
@@ -91,7 +93,7 @@ const DepartmentManagement = () => {
         emp.roles.includes(department.name.toLowerCase())
       );
       setEmployeesInSelectedDepartment(currentEmployeesInDept);
-      
+
       const available = employees.filter(emp => !emp.roles.includes(department.name.toLowerCase()));
       setAvailableEmployeesForDepartment(available);
 
@@ -113,30 +115,30 @@ const DepartmentManagement = () => {
   };
 
   const handleAddEmployeeToDepartment = (employeeId) => {
-      const employee = employees.find(emp => emp.id === parseInt(employeeId));
-      if(employee && currentDepartmentToEdit) {
-          // Add to department
-          setEmployeesInSelectedDepartment(prev => [...prev, employee]);
-          // Remove from available
-          setAvailableEmployeesForDepartment(prev => prev.filter(e => e.id !== employee.id));
-      }
+    const employee = employees.find(emp => emp.id === parseInt(employeeId));
+    if (employee && currentDepartmentToEdit) {
+      // Add to department
+      setEmployeesInSelectedDepartment(prev => [...prev, employee]);
+      // Remove from available
+      setAvailableEmployeesForDepartment(prev => prev.filter(e => e.id !== employee.id));
+    }
   };
-  
+
   const handleRemoveEmployeeFromDepartment = (employeeId) => {
-      const employee = employees.find(emp => emp.id === employeeId);
-      if(employee && currentDepartmentToEdit) {
-          // Remove from department
-          setEmployeesInSelectedDepartment(prev => prev.filter(e => e.id !== employee.id));
-          // Add back to available
-          setAvailableEmployeesForDepartment(prev => [...prev, employee]);
-      }
+    const employee = employees.find(emp => emp.id === employeeId);
+    if (employee && currentDepartmentToEdit) {
+      // Remove from department
+      setEmployeesInSelectedDepartment(prev => prev.filter(e => e.id !== employee.id));
+      // Add back to available
+      setAvailableEmployeesForDepartment(prev => [...prev, employee]);
+    }
   };
 
   const handleUpdateDepartment = (e) => {
     e.preventDefault();
     setPendingDepartmentUpdate({
-        ...currentDepartmentToEdit,
-        employeeIds: employeesInSelectedDepartment.map(e => e.id)
+      ...currentDepartmentToEdit,
+      employeeIds: employeesInSelectedDepartment.map(e => e.id)
     });
     setConfirmUpdateMessage(`Are you sure you want to update department '${currentDepartmentToEdit.name}'?`);
     setIsConfirmUpdateModalOpen(true);
@@ -144,25 +146,25 @@ const DepartmentManagement = () => {
   };
 
   const confirmDepartmentUpdate = () => {
-    setDepartments(prev => prev.map(dept => 
+    setDepartments(prev => prev.map(dept =>
       dept.id === pendingDepartmentUpdate.id ? { ...pendingDepartmentUpdate, employees: pendingDepartmentUpdate.employeeIds.length } : dept
     ));
-    
+
     // Update employee roles
     const deptNameLower = pendingDepartmentUpdate.name.toLowerCase();
     setEmployees(prev => prev.map(emp => {
-        const isNowInDept = pendingDepartmentUpdate.employeeIds.includes(emp.id);
-        const wasInDept = emp.roles.includes(deptNameLower);
+      const isNowInDept = pendingDepartmentUpdate.employeeIds.includes(emp.id);
+      const wasInDept = emp.roles.includes(deptNameLower);
 
-        if(isNowInDept && !wasInDept) {
-            // Add department role
-            return {...emp, roles: [...emp.roles.filter(r => !departmentOptions.includes(r)), deptNameLower]};
-        }
-        if(!isNowInDept && wasInDept) {
-            // Remove department role
-            return {...emp, roles: emp.roles.filter(r => r !== deptNameLower)};
-        }
-        return emp;
+      if (isNowInDept && !wasInDept) {
+        // Add department role
+        return { ...emp, roles: [...emp.roles.filter(r => !departmentOptions.includes(r)), deptNameLower] };
+      }
+      if (!isNowInDept && wasInDept) {
+        // Remove department role
+        return { ...emp, roles: emp.roles.filter(r => r !== deptNameLower) };
+      }
+      return emp;
     }));
 
     handleCloseEditDepartmentModal();
@@ -242,7 +244,7 @@ const DepartmentManagement = () => {
 
   const departmentOptions = departments.map(d => d.name);
   departmentOptions.unshift('No department assigned');
-  
+
   const headOfDepartmentOptions = ['Not assigned', ...employees.filter(e => e.roles.includes('manager') || e.roles.includes('team lead')).map(e => e.name)];
   const departmentStatusOptions = ['active', 'inactive', 'pending'];
 
@@ -455,12 +457,12 @@ const DepartmentManagement = () => {
                 </div>
               </div>
             </div>
-            <input 
-              type="text" 
-              placeholder="Search departments..." 
-              className="department-search-input" 
-              value={departmentSearchTerm} 
-              onChange={handleDepartmentSearchChange} 
+            <input
+              type="text"
+              placeholder="Search departments..."
+              className="department-search-input"
+              value={departmentSearchTerm}
+              onChange={handleDepartmentSearchChange}
             />
             <div className="department-table-container">
               <table className="department-table">
@@ -564,7 +566,7 @@ const DepartmentManagement = () => {
           </div>
         </div>
       )}
-      
+
       {/* Edit Department Modal */}
       {isEditDepartmentModalOpen && currentDepartmentToEdit && (
         <div className="modal-overlay open">
@@ -581,40 +583,40 @@ const DepartmentManagement = () => {
               <div className="edit-department-modal-employees modal-form-full-width">
                 <h4>Manage Employees</h4>
                 <div className="employee-selection-box">
-                    <div>
-                        <h5>Employees in Department ({employeesInSelectedDepartment.length})</h5>
-                        <div className="employee-list-scroll">
-                            {employeesInSelectedDepartment.map(emp => (
-                                <div key={emp.id} className="employee-list-item-manage">
-                                    <span>{emp.name}</span>
-                                    <button type="button" className="remove" onClick={() => handleRemoveEmployeeFromDepartment(emp.id)}>Remove</button>
-                                </div>
-                            ))}
+                  <div>
+                    <h5>Employees in Department ({employeesInSelectedDepartment.length})</h5>
+                    <div className="employee-list-scroll">
+                      {employeesInSelectedDepartment.map(emp => (
+                        <div key={emp.id} className="employee-list-item-manage">
+                          <span>{emp.name}</span>
+                          <button type="button" className="remove" onClick={() => handleRemoveEmployeeFromDepartment(emp.id)}>Remove</button>
                         </div>
+                      ))}
                     </div>
-                    <div>
-                        <h5>Available Employees ({availableEmployeesForDepartment.length})</h5>
-                        <div className="employee-list-scroll">
-                            {availableEmployeesForDepartment.map(emp => (
-                                <div key={emp.id} className="employee-list-item-manage">
-                                    <span>{emp.name}</span>
-                                    <button type="button" onClick={() => handleAddEmployeeToDepartment(emp.id)}>Add</button>
-                                </div>
-                            ))}
+                  </div>
+                  <div>
+                    <h5>Available Employees ({availableEmployeesForDepartment.length})</h5>
+                    <div className="employee-list-scroll">
+                      {availableEmployeesForDepartment.map(emp => (
+                        <div key={emp.id} className="employee-list-item-manage">
+                          <span>{emp.name}</span>
+                          <button type="button" onClick={() => handleAddEmployeeToDepartment(emp.id)}>Add</button>
                         </div>
+                      ))}
                     </div>
+                  </div>
                 </div>
               </div>
               <div className="modal-footer modal-form-full-width">
-                  <button type="button" className="confirm-cancel-btn" onClick={handleCloseEditDepartmentModal}>Cancel</button>
-                  <button type="submit" className="create-employee-btn">Update Department</button>
+                <button type="button" className="confirm-cancel-btn" onClick={handleCloseEditDepartmentModal}>Cancel</button>
+                <button type="submit" className="create-employee-btn">Update Department</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-       {/* Generic Confirmation Modal */}
+      {/* Generic Confirmation Modal */}
       {isConfirmUpdateModalOpen && (
         <div className="modal-overlay open">
           <div className="modal-content">

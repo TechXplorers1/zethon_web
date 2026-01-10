@@ -7,7 +7,10 @@ import AssetManagement from './AssetManagement';
 import RequestManagement from './RequestManagement';
 import ProjectManagement from './ProjectManagement';
 import AdsManagement from './AdsManagement';
+import { database } from '../../../firebase'; // Import your Firebase config
 import { ref, update, get } from "firebase/database"; // Import update function
+import logo from '../../../assets/zethon_logo.png';
+
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -455,7 +458,10 @@ const AdminPage = () => {
       <header className="ad-header">
         <div className="ad-header-left">
           <div className="ad-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-            <span>Tech</span><span className="ad-logo-x">X</span><span>plorers</span>
+            <img src={logo} alt="Zethon Tech Logo" height="50" />
+            <span style={{ color: 'black', marginLeft: '10px', fontWeight: '', fontSize: '1.5rem' }}>
+              Zethon Tech
+            </span>
           </div>
         </div>
         <div className="ad-header-right">

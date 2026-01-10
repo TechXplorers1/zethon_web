@@ -6,7 +6,10 @@ import '../styles/navbar.css';
 import ServicesDropdown from './Services';
 import IndustriesDropdown from './Industry';
 
+import { useAuth } from './AuthContext'; // Import AuthContext
+
 const CustomNavbar = ({ scrolled, aboutRef }) => {
+  const { user, logout } = useAuth(); // Get user and logout from context
   const [showServicesPopup, setShowServicesPopup] = useState(false);
   const [showIndustriesPopup, setShowIndustriesPopup] = useState(false);
   const navigate = useNavigate();
@@ -66,6 +69,19 @@ const CustomNavbar = ({ scrolled, aboutRef }) => {
     e.preventDefault();
     navigate('/');
     window.scrollTo(0, 0); // Scroll to top of the page
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const getDashboardPath = () => {
+    if (!user || !user.roles) return '/';
+    if (user.roles.includes('admin')) return '/adminpage';
+    if (user.roles.includes('manager')) return '/managerworksheet';
+    if (user.roles.includes('employee')) return '/employees';
+    return '/clientdashboard'; // Default for clients
   };
 
   useEffect(() => {
@@ -153,7 +169,15 @@ const CustomNavbar = ({ scrolled, aboutRef }) => {
 
             {/* <Nav.Link as={Link} to="/careers" className="nav-link">Careers</Nav.Link> */}
             <Nav.Link as={Link} to="/contact" className="nav-link">Contact</Nav.Link>
-            <Nav.Link as={Link} to="/login" className="nav-link">Login</Nav.Link>
+
+            {user ? (
+              <>
+                <Nav.Link as={Link} to={getDashboardPath()} className="nav-link">Dashboard</Nav.Link>
+                <Nav.Link onClick={handleLogout} className="nav-link">Logout</Nav.Link>
+              </>
+            ) : (
+              <Nav.Link as={Link} to="/login" className="nav-link">Login</Nav.Link>
+            )}
 
           </Nav>
         </Navbar.Collapse>

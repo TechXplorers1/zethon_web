@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { database } from '../../../firebase';
 import { ref, get, update } from "firebase/database";
 
 // --- IndexedDB Helpers (For Cost-Free Caching) ---

@@ -1,9 +1,52 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { getDatabase, ref, update, remove, set, get } from "firebase/database";
+import { database } from '../../../firebase';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
+
+
+// --- IndexedDB Helpers ---
+const DB_NAME = 'ClientManagementDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'clients_cache';
+
+const openDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror = (event) => reject(event.target.error);
+  });
+};
+
+const dbGet = async (key) => {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(key);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+const dbSet = async (key, value) => {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(value, key);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
 
 const ClientManagement = () => {
   const navigate = useNavigate();
@@ -113,31 +156,40 @@ const ClientManagement = () => {
         setLoading(true);
 
         // --- 1. Try to read from IndexedDB cache first ---
+        let cached = null;
         try {
-          const cached = await dbGet(CLIENT_MGMT_CACHE_KEY);
+          cached = await dbGet(CLIENT_MGMT_CACHE_KEY);
+          // Check if cache is valid and fresh (e.g., < 2 minutes old)
+          const CACHE_VALIDITY_MS = 2 * 60 * 1000; // 2 minutes
           if (!cancelled && cached && Array.isArray(cached.serviceRegistrations)) {
-            setServiceRegistrations(cached.serviceRegistrations);
-            setManagerList(cached.managerList || []);
-            setError(null);
-            setLoading(false);
-            return; // ✅ Served from cache, no Firebase call
+            const isFresh = (Date.now() - (cached.cachedAt || 0)) < CACHE_VALIDITY_MS;
+            if (isFresh) {
+              setServiceRegistrations(cached.serviceRegistrations);
+              setManagerList(cached.managerList || []);
+              setError(null);
+              setLoading(false);
+              return; // ✅ Served from fresh cache
+            } else {
+              console.log("IndexedDB cache found but stale. Fetching fresh data...");
+            }
           }
         } catch (cacheErr) {
           console.warn('ClientManagement cache read failed, falling back to network:', cacheErr);
         }
 
         // --- CIRCUIT BREAKER: Prevent infinite loops ---
-        const lastFetch = localStorage.getItem('last_client_fetch_timestamp');
-        if (lastFetch && (Date.now() - parseInt(lastFetch) < 10000)) {
-          console.warn("⚠️ Data fetch blocked: Too frequent requests. Using cache if available.");
-          // Try to use memory cache or just return to avoid network cost
-          if (cached && cached.serviceRegistrations) {
-            setServiceRegistrations(cached.serviceRegistrations);
-            setManagerList(cached.managerList || []);
-            setLoading(false);
-            return;
-          }
-        }
+        // const lastFetch = localStorage.getItem('last_client_fetch_timestamp');
+        // Reduced from 10000 to 1000ms to allow easier testing
+        // if (lastFetch && (Date.now() - parseInt(lastFetch) < 1000)) {
+        //   console.warn("⚠️ Data fetch blocked: Too frequent requests. Using cache if available.");
+        //   // Try to use memory cache or just return to avoid network cost
+        //   if (cached && cached.serviceRegistrations) {
+        //     setServiceRegistrations(cached.serviceRegistrations);
+        //     setManagerList(cached.managerList || []);
+        //     setLoading(false);
+        //     return;
+        //   }
+        // }
 
         // --- 2. If no cache, fetch OPTIMIZED index from Firebase ---
         console.log("Fetching fresh data from Firebase...");
@@ -146,8 +198,8 @@ const ClientManagement = () => {
         // Instead of fetching "clients" (huge), we fetch "service_registrations_index" (small)
         const [indexSnap, usersSnap] = await Promise.all([
           get(ref(database, 'service_registrations_index')),
-          // We now fetch the optimized employee index instead of ALL users
-          get(ref(database, 'employees_index')),
+          // Revert to fetching 'users' because 'employees_index' is not being populated by EmployeeManagement yet
+          get(ref(database, 'users')),
         ]);
 
         if (cancelled) return;
@@ -464,6 +516,7 @@ const ClientManagement = () => {
       // Remove from both locations
       updates[`clients/${clientToDelete.clientFirebaseKey}/serviceRegistrations/${clientToDelete.registrationKey}`] = null;
       updates[indexKey] = null;
+      updates[`clients-jobapplication/${clientToDelete.clientFirebaseKey}/${clientToDelete.registrationKey}`] = null;
 
       await update(ref(database), updates);
 
@@ -773,7 +826,7 @@ const ClientManagement = () => {
 
       const jobApplicationsRef = ref(
         database,
-        `clients/${clientKey}/serviceRegistrations/${regKey}/jobApplications`
+        `clients-jobapplication/${clientKey}/${regKey}`
       );
 
       const snapshot = await get(jobApplicationsRef);
@@ -1008,7 +1061,7 @@ const ClientManagement = () => {
                       maxWidth: '300px'  // Optional: Prevents the column from becoming excessively wide
                     }}
                   >{registration.service === 'Job Supporting' ? registration.jobsToApply : registration.service}</td>
-                  <td>{registration.registeredDate}</td>
+                  <td>{registration.appliedDate}</td>
                   <td>{registration.country}</td>
                   {registration.service === 'Job Supporting' && <td>{registration.visaStatus}</td>}
                   {(currentClientFilter === 'unassigned' || currentClientFilter === 'restored') && (

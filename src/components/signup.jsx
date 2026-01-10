@@ -5,10 +5,11 @@ import { FcGoogle } from "react-icons/fc";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-
 import { Card, Button, Form, InputGroup, Modal, Spinner } from 'react-bootstrap'; // Import Spinner
+import { useAuth } from '../components/AuthContext';
 import '../styles/AuthForm.css';
 
+import { auth, database } from "../firebase";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -17,6 +18,7 @@ import {
 import { ref, set, get, child } from "firebase/database";
 
 export default function SignupPage() {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -250,20 +252,19 @@ export default function SignupPage() {
             </div>
           </Form>
         </div>
+      </div>
 
-
-        <Modal show={showSuccessModal} onHide={handleCloseSuccessModal} centered>
-          <Modal.Body className="text-center p-4">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/845/845646.jpeg"
-              alt="Success"
-              style={{ width: '80px' }}
-              onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/80x80/28a745/white?text=OK'; }}
-            />
-            <h5 className="mt-3 text-success">Account successfully created!</h5>
-          </Modal.Body>
-        </Modal>
-      </div >
+      <Modal show={showSuccessModal} onHide={handleCloseSuccessModal} centered>
+        <Modal.Body className="text-center p-4">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/845/845646.jpeg"
+            alt="Success"
+            style={{ width: '80px' }}
+            onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/80x80/28a745/white?text=OK'; }}
+          />
+          <h5 className="mt-3 text-success">Account successfully created!</h5>
+        </Modal.Body>
+      </Modal>
     </>
   );
 }

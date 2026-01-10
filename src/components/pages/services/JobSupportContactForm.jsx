@@ -8,9 +8,12 @@ import 'react-phone-number-input/style.css';
 import '../../../styles/JobSupportForm.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import CustomNavbar from '../../../components/Navbar';
-const ContactForm = () => {
+import { ref, set, update } from "firebase/database";
+import { database } from '../../../firebase';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+const JobSupportContactForm = () => {
 
-    const form = useRef(); // Create a ref for the form element
+  const form = useRef(); // Create a ref for the form element
 
   useEffect(() => {
     emailjs.init('I1UJMnujMWkyQsjA0');
@@ -24,20 +27,20 @@ const ContactForm = () => {
     dob: '',
     gender: '',
     ethnicity: '',
-    
+
     // Contact Information
     address: '',
     zipCode: '',
     mobile: '',
     email: '',
-    
+
     // Employment Information
     securityClearance: '',
     clearanceLevel: '',
     willingToRelocate: '',
     workPreference: '',
     restrictedCompanies: '',
-    
+
     // Job Preferences
     jobsToApply: '',
     technologySkills: '',
@@ -45,33 +48,33 @@ const ContactForm = () => {
     expectedSalary: '',
     visaStatus: '',
     otherVisaStatus: '',
-    
+
     // Education
     universityName: '',
     universityAddress: '',
     courseOfStudy: '',
     graduationFromDate: '',
     graduationToDate: '',
-    
+
     // Current Employment
     currentCompany: '',
     currentDesignation: '',
     preferredInterviewTime: '',
     earliestJoiningDate: '',
     relievingDate: '',
-    
+
     // References
     referenceName: '',
     referencePhone: '',
     referenceAddress: '',
     referenceEmail: '',
     referenceRole: '',
-    
+
     // Job Portal Information
-   jobPortalAccountNameandCredentials:''
+    jobPortalAccountNameandCredentials: ''
   });
 
-   const [resumeFile, setResumeFile] = useState(null);
+  const [resumeFile, setResumeFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState({ success: false, message: '' });
 
@@ -80,14 +83,14 @@ const ContactForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-   // Specific handlers for the PhoneInput components
-    const handleMobileChange = (value) => {
-        setFormData(prev => ({ ...prev, mobile: value }));
-    };
+  // Specific handlers for the PhoneInput components
+  const handleMobileChange = (value) => {
+    setFormData(prev => ({ ...prev, mobile: value }));
+  };
 
-    const handleReferencePhoneChange = (value) => {
-        setFormData(prev => ({ ...prev, referencePhone: value }));
-    };
+  const handleReferencePhoneChange = (value) => {
+    setFormData(prev => ({ ...prev, referencePhone: value }));
+  };
 
   // New handler for file input
   const handleFileChange = (e) => {
@@ -98,14 +101,58 @@ const ContactForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    let loggedInUser = JSON.parse(sessionStorage.getItem('loggedInClient'));
+    if (!loggedInUser) {
+      loggedInUser = JSON.parse(localStorage.getItem('user'));
+    }
+
+    if (!loggedInUser || !loggedInUser.firebaseKey) {
+      alert("Please log in to submit this application.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+      // 1. Send Email (Existing Logic)
       const response = await emailjs.send(
         'service_6zo0q3i',
         'template_plu2dxj',
         formData,
         'I1UJMnujMWkyQsjA0'
       );
-      console.log('EmailJS Response:', response); // Add this line
+      console.log('EmailJS Response:', response);
+
+      // 2. Upload Resume if exists
+      let resumeUrl = '';
+      if (resumeFile) {
+        const storage = getStorage();
+        const fileRef = storageRef(storage, `resumes/${loggedInUser.firebaseKey}/${Date.now()}_${resumeFile.name}`);
+        await uploadBytes(fileRef, resumeFile);
+        resumeUrl = await getDownloadURL(fileRef);
+      }
+
+      // 3. Save to Firebase (Atomic Update: Clients + Index)
+      const registrationKey = Date.now().toString();
+      const clientFirebaseKey = loggedInUser.firebaseKey;
+
+      const submissionData = {
+        ...formData,
+        resumeUrl,
+        service: 'Job Supporting',
+        serviceType: 'Job Supporting',
+        status: 'New',
+        assignmentStatus: 'registered', // Required for "Registered Clients" count
+        appliedDate: new Date().toISOString().split('T')[0],
+        timestamp: new Date().toISOString(),
+        registrationKey: registrationKey,
+        clientFirebaseKey: clientFirebaseKey
+      };
+
+      const updates = {};
+      updates[`clients/${clientFirebaseKey}/serviceRegistrations/${registrationKey}`] = submissionData;
+      updates[`service_registrations_index/${clientFirebaseKey}_${registrationKey}`] = submissionData;
+
+      await update(ref(database), updates);
 
       form.current.reset();
       // Reset form
@@ -146,29 +193,30 @@ const ContactForm = () => {
         referenceAddress: '',
         referenceEmail: '',
         referenceRole: '',
-        jobPortalAccountNameandCredentials:''
+        jobPortalAccountNameandCredentials: ''
       });
       setResumeFile(null);
-      
-      setSubmitStatus({ success: true, message: 'Form submitted successfully!' });
+
+      setSubmitStatus({ success: true, message: 'Form submitted successfully! Your application has been recorded.' });
     } catch (error) {
+      console.error("Submission Error:", error);
       setSubmitStatus({ success: false, message: 'Submission failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
   };
-    useEffect(() => {
-      if (!window.location.hash.includes('#')) {
-        window.location.href = window.location.href + '#';
-        window.location.reload();
-      }
-      }, []);
+  useEffect(() => {
+    if (!window.location.hash.includes('#')) {
+      window.location.href = window.location.href + '#';
+      window.location.reload();
+    }
+  }, []);
 
   return (
     <div style={{ backgroundColor: 'transparent', padding: '10px' }}>
-       <CustomNavbar/>
-      <Container className="my-1 contact-form1">
       <CustomNavbar />
+      <Container className="my-1 contact-form1">
+        <CustomNavbar />
 
         <h1 className="text-center mb-4" style={{ fontFamily: "Orbitron" }}>CONNECT WITH ZETHON</h1>
         <p className="text-center mb-4">
@@ -296,15 +344,15 @@ const ContactForm = () => {
               <Form.Group className="mb-3" controlId="formMobile">
                 <Form.Label>Mobile Number<span className="text-danger"> *</span></Form.Label>
                 <PhoneInput
-                                    international
-                                    defaultCountry="IN"
-                                    value={formData.mobile}
-                                    onChange={handleMobileChange}
-                                    className="form-control"
-                                    name="mobile"
-                                />
-                                 {/* Hidden input to pass the value through the form ref */}
-                                <input type="hidden" name="mobile" value={formData.mobile || ''} />
+                  international
+                  defaultCountry="IN"
+                  value={formData.mobile}
+                  onChange={handleMobileChange}
+                  className="form-control"
+                  name="mobile"
+                />
+                {/* Hidden input to pass the value through the form ref */}
+                <input type="hidden" name="mobile" value={formData.mobile || ''} />
               </Form.Group>
             </Col>
             <Col md={4}>
@@ -633,15 +681,15 @@ const ContactForm = () => {
             <Col md={6}>
               <Form.Group className="mb-3" controlId="formReferencePhone">
                 <Form.Label>Reference Phone</Form.Label>
-               <PhoneInput
-                                    international
-                                    defaultCountry="IN"
-                                    value={formData.referencePhone}
-                                    onChange={handleReferencePhoneChange}
-                                    className="form-control"
-                                />
-                                 {/* Hidden input to pass the value through the form ref */}
-                                <input type="hidden" name="referencePhone" value={formData.referencePhone || ''} />
+                <PhoneInput
+                  international
+                  defaultCountry="IN"
+                  value={formData.referencePhone}
+                  onChange={handleReferencePhoneChange}
+                  className="form-control"
+                />
+                {/* Hidden input to pass the value through the form ref */}
+                <input type="hidden" name="referencePhone" value={formData.referencePhone || ''} />
               </Form.Group>
             </Col>
           </Row>
@@ -705,4 +753,4 @@ const ContactForm = () => {
   );
 };
 
-export default ContactForm;
+export default JobSupportContactForm;

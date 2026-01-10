@@ -6,7 +6,10 @@ import { FcGoogle } from "react-icons/fc";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { useAuth } from '../components/AuthContext';
 import '../styles/AuthForm.css';
+
+import { auth, database } from "../firebase";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -16,6 +19,7 @@ import {
 import { ref, get, child, set, update } from "firebase/database";
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");

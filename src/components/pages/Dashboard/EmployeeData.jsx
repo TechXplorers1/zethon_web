@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Modal, Spinner } from 'react-bootstrap'; // Using react-bootstrap Modal
 import { ref, query, orderByChild, equalTo, update, remove, set, push, get } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-
+import { database, storage } from '../../../firebase';
+import logo from '../../../assets/zethon_logo.png';
 
 const simplifiedServices = ['Mobile Development', 'Web Development', 'Digital Marketing', 'IT Talent Supply', 'Cyber Security'];
 // --- IndexedDB Helper (Solves the 5MB Quota Limit) ---
@@ -345,9 +346,10 @@ const AdminHeader = ({
       <header className="ad-header">
         <div className="ad-header-left">
           <div className="ad-logo" onClick={onLogoClick} style={{ cursor: 'pointer' }}>
-            <span>Tech</span>
-            <span className="ad-logo-x">X</span>
-            <span>plorers</span>
+            <img src={logo} alt="Zethon Tech Logo" height="50" />
+            <span style={{ color: 'black', marginLeft: '10px', fontWeight: '', fontSize: '1.5rem' }}>
+              Zethon Tech
+            </span>
           </div>
         </div>
 
@@ -655,15 +657,19 @@ const EmployeeData = () => {
         // B. Fetch ONLY the specific client records needed (Parallel Fetch)
         Object.values(assignments).forEach(assignment => {
           const specificClientRef = ref(database, `clients/${assignment.clientFirebaseKey}/serviceRegistrations/${assignment.registrationKey}`);
+          const appsRef = ref(database, `clients-jobapplication/${assignment.clientFirebaseKey}/${assignment.registrationKey}`);
 
-          promises.push(get(specificClientRef).then(snap => {
+          promises.push(Promise.all([get(specificClientRef), get(appsRef)]).then(([snap, appsSnap]) => {
             if (snap.exists()) {
               const registration = snap.val();
 
+              // Fetch apps from new node, fallback to old node if not migrated yet
+              const externalApps = appsSnap.exists() ? appsSnap.val() : (registration.jobApplications || []);
+
               // Flatten jobApplications
-              const jobApplicationsArray = registration.jobApplications
-                ? Object.values(registration.jobApplications)
-                : [];
+              const jobApplicationsArray = Array.isArray(externalApps)
+                ? externalApps
+                : Object.values(externalApps || {});
 
               // Reconstruct the data structure the UI expects
               return {
@@ -983,10 +989,13 @@ const EmployeeData = () => {
 
       const registrationRef = ref(
         database,
-        `clients/${client.clientFirebaseKey}/serviceRegistrations/${client.registrationKey}/jobApplications`
+        `clients-jobapplication/${client.clientFirebaseKey}/${client.registrationKey}`
       );
 
       await set(registrationRef, updatedApplications);
+      // Legacy Cleanup
+      await set(ref(database, `clients/${client.clientFirebaseKey}/serviceRegistrations/${client.registrationKey}/jobApplications`), null);
+
       updateLocalClientCache(client.clientFirebaseKey, client.registrationKey, 'jobApplications', updatedApplications);
       // Update the local state to trigger a re-render
       const updatedClient = {
@@ -1467,9 +1476,12 @@ const EmployeeData = () => {
     };
     const existingApplications = selectedClient.jobApplications || [];
     const updatedApplications = [newApp, ...existingApplications];
-    const registrationRef = ref(database, `clients/${selectedClient.clientFirebaseKey}/serviceRegistrations/${selectedClient.registrationKey}/jobApplications`);
+    const registrationRef = ref(database, `clients-jobapplication/${selectedClient.clientFirebaseKey}/${selectedClient.registrationKey}`);
     try {
       await set(registrationRef, updatedApplications);
+      // Legacy Cleanup
+      await set(ref(database, `clients/${selectedClient.clientFirebaseKey}/serviceRegistrations/${selectedClient.registrationKey}/jobApplications`), null);
+
       const updatedClient = { ...selectedClient, jobApplications: updatedApplications };
       setSelectedClient(updatedClient);
       const updateClientList = (prevClients) => prevClients.map(c => c.registrationKey === updatedClient.registrationKey ? updatedClient : c);
@@ -1545,10 +1557,14 @@ const EmployeeData = () => {
       applicationDataToSave.attachments = attachmentsToSave;
       const updatedApplications = (selectedClient.jobApplications || []).map(app => app.id === applicationDataToSave.id ? applicationDataToSave : app);
       const registrationRef = ref(database, `clients/${selectedClient.clientFirebaseKey}/serviceRegistrations/${selectedClient.registrationKey}`);
+      const appsRef = ref(database, `clients-jobapplication/${selectedClient.clientFirebaseKey}/${selectedClient.registrationKey}`);
       const currentFiles = selectedClient.files || [];
       const updatedFiles = [...filesToAddToClient, ...currentFiles];
 
-      await update(registrationRef, { jobApplications: updatedApplications, files: updatedFiles, });
+      await update(registrationRef, { files: updatedFiles });
+      await set(appsRef, updatedApplications);
+      // Legacy Cleanup
+      await set(ref(database, `clients/${selectedClient.clientFirebaseKey}/serviceRegistrations/${selectedClient.registrationKey}/jobApplications`), null);
       updateLocalClientCache(selectedClient.clientFirebaseKey, selectedClient.registrationKey, 'jobApplications', updatedApplications);
       updateLocalClientCache(selectedClient.clientFirebaseKey, selectedClient.registrationKey, 'files', updatedFiles); const updatedClient = { ...selectedClient, jobApplications: updatedApplications, files: updatedFiles, };
       setSelectedClient(updatedClient);

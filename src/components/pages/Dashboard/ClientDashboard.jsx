@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { getDatabase, ref, query, orderByChild, equalTo, update, remove, set, get, push, onValue } from "firebase/database";
 import { getStorage, ref as storageRef, getDownloadURL } from "firebase/storage";
+import { database, storage } from '../../../firebase'; // Import your Firebase config
 import {
   Chart as ChartJS,
   LineElement,
@@ -16,6 +17,7 @@ import styled from 'styled-components';
 import { utils, writeFile } from 'xlsx'; // Corrected import: Using named exports
 import { Modal, Button, Form, Row, Col, Carousel } from 'react-bootstrap'; // For modals in Applications tab and others
 import { FaCalendarAlt } from 'react-icons/fa'; // For calendar icon in Applications tab
+import logo from '../../../assets/zethon_logo.png';
 
 
 ChartJS.register(
@@ -583,7 +585,10 @@ const ClientHeader = ({
       <header className={`ad-header`}>
         <div className="ad-header-left">
           <div className="ad-logo" onClick={onLogoClick} style={{ cursor: 'pointer' }}>
-            <span className="brand-full">TechXplorers</span>
+            <img src={logo} alt="Zethon Tech Logo" height="50" />
+            <span style={{ color: 'black', marginLeft: '10px', fontWeight: '', fontSize: '1.5rem' }}>
+              Zethon Tech
+            </span>
           </div>
         </div>
 
@@ -2501,6 +2506,10 @@ const ClientDashboard = () => {
   const [clientData, setClientData] = useState(null);
   const [allFiles, setAllFiles] = useState([]);
 
+  // NEW: Split states for raw profile and raw applications (Refactoring Job Applications)
+  const [rawProfile, setRawProfile] = useState(null);
+  const [rawApps, setRawApps] = useState(null);
+
   // --- UPDATED ADS & BANNERS LOGIC ---
   const [activeBannerAds, setActiveBannerAds] = useState([]);
 
@@ -2926,6 +2935,9 @@ const ClientDashboard = () => {
   // ClientDashboard.jsx
 
 
+  // --- REFACTORED: SPLIT FETCHING AND PROCESSING ---
+
+  // 1. Data Fetching Effect (Listeners)
   useEffect(() => {
     let loggedInUserData = null;
     try {
@@ -2949,6 +2961,7 @@ const ClientDashboard = () => {
             serviceName: "Web Development",
             status: "Active",
             files: [],
+            // Mock apps are already embedded, so rawApps can be empty or null
             jobApplications: [
               {
                 id: "job-1",
@@ -2965,121 +2978,150 @@ const ClientDashboard = () => {
         }
       };
 
-      setClientData(mockClientData);
-      // Also set a mock user name for the header to pick up if it reads from session or elsewhere
-      // But ClientDashboard reads 'clientUserName' prop or derives it? 
-      // We need to see where 'clientUserName' comes from. 
-      // It seems unrelated to this specific useEffect, but depends on 'clientData' usually.
-
-      return; // Skip Firebase listener for guest
+      setRawProfile(mockClientData);
+      setRawApps(null); // No separate apps for guest
+      return;
     }
 
     const clientKey = loggedInUserData.firebaseKey;
-    const clientRef = ref(database, `clients/${clientKey}`);
 
-    // 1. Set up the real-time listener
-    // This listener acts as both the initial fetch and the real-time cache updater.
-    const unsubscribe = onValue(clientRef, (snapshot) => {
-      const data = snapshot.exists() ? snapshot.val() : null;
-      console.log("Client Data Fetched/Updated:", data);
+    // Listen to Profile
+    const profileRef = ref(database, `clients/${clientKey}`);
+    const unsubscribeProfile = onValue(profileRef, (snapshot) => {
+      setRawProfile(snapshot.exists() ? snapshot.val() : null);
+    });
 
-      if (!data) {
-        // Handle case where data is removed or non-existent
-        setClientData(null);
-        setAllFiles([]);
-        setApplicationsData({});
-        setScheduledInterviews([]);
-        setActiveServices([]);
-        setInactiveServices([]);
-        return;
-      }
-
-      // 2. Process and set the new data (This runs on initial fetch AND every update)
-      setClientData(data); // <-- Client data is 'cached' in component state
-
-      // IMPORTANT: Move ALL data processing logic that previously followed 'setClientData(data)' 
-      // into this callback, so it runs whenever the data is updated.
-
-      const registrations = data.serviceRegistrations ? Object.values(data.serviceRegistrations) : [];
-
-      // B. Extract and group applications (Optimization: use a single loop)
-      let allApplications = [];
-      let interviews = [];
-      const groupedApplications = {};
-      let generalFiles = [];
-      let applicationAttachments = [];
-
-      registrations.forEach(reg => {
-        // Collect files attached to the service registration itself
-        generalFiles = generalFiles.concat(reg.files || []);
-
-        (reg.jobApplications || []).forEach(app => {
-          // Collect all applications for flattening
-          allApplications.push(app);
-
-          // Collect attachments from applications
-          applicationAttachments = applicationAttachments.concat(app.attachments || []);
-
-          // Group applications by date for the ribbon
-          const dateKey = formatDate(app.appliedDate);
-          const entry = {
-            id: app.id,
-            jobId: app.jobId,
-            website: app.jobBoards,
-            position: app.jobTitle,
-            company: app.company,
-            // FIX: Ensure you are using the correct field name for the link
-            link: app.jobDescriptionUrl || app.link || '', // Use 'link' for display, fallback to 'jobDescriptionUrl' if name is inconsistent
-          };
-
-          if (!groupedApplications[dateKey]) {
-            groupedApplications[dateKey] = [];
-          }
-          groupedApplications[dateKey].push(entry);
-
-          // Filter interviews directly
-          if (app.status === 'Interview') {
-            interviews.push(app);
-          }
-        });
-      });
-
-      setScheduledInterviews(interviews);
-      setApplicationsData(groupedApplications); // Use the efficiently created map
-
-      // C. Combine and set all files
-      const allFilesMap = new Map();
-      [...generalFiles, ...applicationAttachments].forEach(file => {
-        if (file && file.downloadUrl) {
-          allFilesMap.set(file.downloadUrl, file);
-        }
-      });
-      setAllFiles(Array.from(allFilesMap.values()));
-
-      // D. Update Active/Inactive Services
-      const allServices = [
-        { title: "Mobile Development", path: "/services/mobile-app-development" },
-        { title: "Web Development", path: "/services/web-app-development" },
-        { title: "Digital Marketing", path: "/services/digital-marketing" },
-        { title: "IT Talent Supply", path: "/services/it-talent-supply" },
-        { title: "Job Supporting", path: "/services/job-contact-form" },
-        { title: "Cyber Security", path: "/services/cyber-security" },
-      ];
-      const registeredServiceNames = registrations.map(
-        reg => reg.service || ''
-      );
-      setActiveServices(allServices.filter(s => registeredServiceNames.includes(s.title)));
-      setInactiveServices(allServices.filter(s => !registeredServiceNames.includes(s.title)));
-
-    }, (error) => {
-      console.error("Firebase Read Error:", error);
+    // Listen to Applications (New Node)
+    const appsRef = ref(database, `clients-jobapplication/${clientKey}`);
+    const unsubscribeApps = onValue(appsRef, (snapshot) => {
+      setRawApps(snapshot.exists() ? snapshot.val() : null);
     });
 
     return () => {
-      unsubscribe();
+      unsubscribeProfile();
+      unsubscribeApps();
     };
+  }, []); // Run once on mount
 
-  }, []);
+  // 2. Data Processing Effect (Merge & Process)
+  useEffect(() => {
+    // If no profile data, clear everything
+    if (!rawProfile) {
+      setClientData(null);
+      setAllFiles([]);
+      setApplicationsData({});
+      setScheduledInterviews([]);
+      setActiveServices([]);
+      setInactiveServices([]);
+      return;
+    }
+
+    // MERGE LOGIC: Inject applications into service registrations
+    const combinedData = { ...rawProfile };
+
+    // Only attempt merge if we have a serviceRegistrations object
+    if (combinedData.serviceRegistrations) {
+      // Create a shallow copy of serviceRegistration keys to avoid mutation
+      const newRegistrations = {};
+
+      Object.keys(combinedData.serviceRegistrations).forEach(regKey => {
+        const originalReg = combinedData.serviceRegistrations[regKey];
+        newRegistrations[regKey] = { ...originalReg }; // Clone the registration object
+
+        // If we have separate apps for this key, inject them
+        // Note: rawApps is { regKey: [apps...] }
+        if (rawApps && rawApps[regKey]) {
+          newRegistrations[regKey].jobApplications = rawApps[regKey];
+        } else if (!newRegistrations[regKey].jobApplications) {
+          // If no apps from separate node AND none in original (legacy), ensure array exists
+          // But for Guest, they exist in original.
+          // So only if missing, default to empty? 
+          // Actually, if we migrated, original won't have them. 
+          // If rawApps is null (loading or empty), we might show nothing.
+        }
+      });
+
+      combinedData.serviceRegistrations = newRegistrations;
+    }
+
+    // Set the combined data as the main source of truth
+    setClientData(combinedData);
+
+    // --- COPIED PROCESSING LOGIC ---
+    // Extract and process registrations from the COMBINED data
+    const registrations = combinedData.serviceRegistrations ? Object.values(combinedData.serviceRegistrations) : [];
+
+    // B. Extract and group applications (Optimization: use a single loop)
+    let allApplications = [];
+    let interviews = [];
+    const groupedApplications = {};
+    let generalFiles = [];
+    let applicationAttachments = [];
+
+    registrations.forEach(reg => {
+      // Collect files attached to the service registration itself
+      generalFiles = generalFiles.concat(reg.files || []);
+
+      (reg.jobApplications || []).forEach(app => {
+        // Collect all applications for flattening
+        allApplications.push(app);
+
+        // Collect attachments from applications
+        applicationAttachments = applicationAttachments.concat(app.attachments || []);
+
+        // Group applications by date for the ribbon
+        const dateKey = formatDate(app.appliedDate);
+        const entry = {
+          id: app.id,
+          dateAdded: formatDate(app.appliedDate), // ADDED: Map appliedDate to dateAdded for display
+          jobId: app.jobId,
+          website: app.jobBoards,
+          position: app.jobTitle,
+          company: app.company,
+          // FIX: Ensure you are using the correct field name for the link
+          link: app.jobDescriptionUrl || app.link || '', // Use 'link' for display, fallback to 'jobDescriptionUrl' if name is inconsistent
+        };
+
+        if (!groupedApplications[dateKey]) {
+          groupedApplications[dateKey] = [];
+        }
+        groupedApplications[dateKey].push(entry);
+
+        // Filter interviews directly
+        if (app.status === 'Interview') {
+          interviews.push(app);
+        }
+      });
+    });
+
+    setScheduledInterviews(interviews);
+    setApplicationsData(groupedApplications); // Use the efficiently created map
+
+    // C. Combine and set all files
+    const allFilesMap = new Map();
+    [...generalFiles, ...applicationAttachments].forEach(file => {
+      if (file && file.downloadUrl) {
+        allFilesMap.set(file.downloadUrl, file);
+      }
+    });
+    setAllFiles(Array.from(allFilesMap.values()));
+
+    // D. Update Active/Inactive Services
+    const allServices = [
+      { title: "Mobile Development", path: "/services/mobile-app-development" },
+      { title: "Web Development", path: "/services/web-app-development" },
+      { title: "Digital Marketing", path: "/services/digital-marketing" },
+      { title: "IT Talent Supply", path: "/services/it-talent-supply" },
+      { title: "Job Supporting", path: "/services/job-contact-form" },
+      { title: "Cyber Security", path: "/services/cyber-security" },
+    ];
+    const registeredServiceNames = registrations.map(
+      reg => reg.service || ''
+    );
+    setActiveServices(allServices.filter(s => registeredServiceNames.includes(s.title)));
+    setInactiveServices(allServices.filter(s => !registeredServiceNames.includes(s.title)));
+
+  }, [rawProfile, rawApps]);
 
   const handleActiveServiceClick = (service) => {
     if (clientData && clientData.serviceRegistrations) {
