@@ -10,6 +10,7 @@ import ITTalentSupply from '../components/pages/services/ITTalentSupply';
 import JobSupport from '../components/pages/services/JobSupport';
 import CyberSecurity from '../components/pages/services/CyberSecurity';
 import JobSupportContactForm from '../components/pages/services/JobSupportContactForm';
+import ServicesForm from '../components/pages/services/ServicesForm';
 import ServiceLayout from '../components/ServiceLayout';
 import Contact from '../components/Contact';
 import BFSI from '../components/pages/industries/BFSI';
@@ -95,7 +96,8 @@ const AppRoutes = () => {
               <Route path="/services/job-support" element={<JobSupport />} />
               <Route path="/services/cyber-security" element={<CyberSecurity />} />
               <Route path="/services/job-contact-form" element={<ProtectedRoute allowedRoles={['client']}><JobSupportContactForm /></ProtectedRoute>} />
-              {/* <Route path="/services/servicesForm" element={<ProtectedRoute allowedRoles={['client']}><ServicesForm /></ProtectedRoute>} /> */}
+              <Route path="/services/apply" element={<ProtectedRoute allowedRoles={['client']}><ServicesForm /></ProtectedRoute>} />
+              <Route path="/services/servicesForm" element={<ProtectedRoute allowedRoles={['client']}><ServicesForm /></ProtectedRoute>} />
 
               {/* DashBoards */}
               {/* --- Protected Routes with Role-Based Access --- */}

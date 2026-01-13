@@ -6,12 +6,12 @@ import CustomNavbar from '../../../components/Navbar';
 
 const JobSupport = () => {
   const navigate = useNavigate(); // Initialize useNavigate
-    useEffect(() => {
-      if (!window.location.hash.includes('#')) {
-        window.location.href = window.location.href + '#';
-        window.location.reload();
-      }
-      }, []);
+  useEffect(() => {
+    if (!window.location.hash.includes('#')) {
+      window.location.href = window.location.href + '#';
+      window.location.reload();
+    }
+  }, []);
   return (
     <div className="mobile-app-dev service-box">
       <CustomNavbar />

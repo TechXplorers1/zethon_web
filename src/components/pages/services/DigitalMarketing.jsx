@@ -2,16 +2,19 @@ import React, { useEffect } from 'react';
 import '../../../styles/ServiceLayout.css';
 import img1 from '../../../assets/mobile3.png';
 import CustomNavbar from '../../../components/Navbar';
+import { useNavigate } from 'react-router-dom';
+
 const DigitalMarketing = () => {
-     useEffect(() => {
-      if (!window.location.hash.includes('#')) {
-        window.location.href = window.location.href + '#';
-        window.location.reload();
-      }
-      }, []);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!window.location.hash.includes('#')) {
+      window.location.href = window.location.href + '#';
+      window.location.reload();
+    }
+  }, []);
   return (
     <div className="mobile-app-dev service-box">
-      <CustomNavbar/>
+      <CustomNavbar />
       <h2 className="section-title">Digital Marketing</h2>
 
       {/* Single image display */}
@@ -71,8 +74,16 @@ const DigitalMarketing = () => {
         <div className="contact-container">
           <h2 className="headline">Want to know more or work with us?</h2>
           <a href="https://wa.me/919052990765" target="_blank" rel="noopener noreferrer" className="contact-button">
-  Contact Us
-</a>
+            Contact Us
+          </a>
+          <span style={{ color: '#fff', margin: '0 10px', fontWeight: 'bold' }}>---- or ----</span>
+          <button
+            className="contact-button"
+            style={{ marginTop: '15px', marginLeft: '15px', cursor: 'pointer' }}
+            onClick={() => navigate('/services/apply', { state: { service: 'Digital Marketing' } })}
+          >
+            Apply Now
+          </button>
 
         </div>
       </div>
