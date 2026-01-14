@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button, Modal, Form, InputGroup, Alert, Spinner } from 'react-bootstrap'; // Import Spinner
 import { FcGoogle } from "react-icons/fc";
-import { MdEmail } from "react-icons/md";
+import { MdEmail, MdArrowBack } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useAuth } from '../components/AuthContext';
@@ -157,6 +157,10 @@ export default function LoginPage() {
   return (
     <>
       <div className="auth-page-wrapper">
+        <button className="auth-back-button" onClick={() => navigate('/')}>
+          <MdArrowBack size={20} />
+          Back to Home
+        </button>
         <div className="auth-card">
           <h3 className="text-center auth-title">Login to Your Account</h3>
           <Button

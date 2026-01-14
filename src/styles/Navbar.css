@@ -85,9 +85,10 @@ h1 {
 
 
 /* Body padding to account for fixed navbar */
-body {
+/* Body padding removed - should be handled by specific text-containers or layouts */
+/* body {
   padding-top: 80px;
-}
+} */
 
 .services-dropdown-container {
   position: fixed;
@@ -113,9 +114,9 @@ body {
 }
 
 @media (max-width: 768px) {
-  body {
+  /* body {
     padding-top: 70px;
-  }
+  } */
 
   .nav-link {
     font-size: 0.9rem;

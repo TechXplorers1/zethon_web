@@ -162,8 +162,6 @@ const ServicesForm = () => {
     ],
   };
 
-  // In ServicesForm.jsx, REPLACE the entire `return (...)` block.
-
   return (
     <>
       <style>{modernStyles}</style>
@@ -248,10 +246,6 @@ const ServicesForm = () => {
     </>
   );
 };
-
-// In ServicesForm.jsx, add this constant before the `return` statement.
-
-// In ServicesForm.jsx, REPLACE your existing `modernStyles` constant with this one.
 
 const modernStyles = `
   /* --- CYBERPUNK THEME UTILITIES --- */
@@ -550,31 +544,10 @@ const modernStyles = `
 `;
 
 // Styles
-const formContainerStyle = { maxWidth: '600px', margin: '40px auto', padding: '30px', border: '1px solid #ddd', borderRadius: '12px', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)', position: 'relative' };
-const backButtonStyle = { position: 'absolute', top: '20px', left: '20px', padding: '8px 15px', fontSize: '16px', color: '#007bff', backgroundColor: '#fff', border: '1px solid #007bff', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'background-color 0.3s ease, color 0.3s ease' };
-const backArrowStyle = { fontSize: '20px', lineHeight: '1' };
-const titleStyle = { textAlign: 'center', fontSize: '24px', fontWeight: '600', color: '#333', marginBottom: '20px' };
-const formStyle = { display: 'flex', flexDirection: 'column', gap: '20px' };
-const formGroupStyle = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const labelStyle = { fontSize: '16px', fontWeight: '500', color: '#555' };
-const requiredStyle = { color: 'red', marginLeft: '4px' };
-const inputStyle = { padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '8px', outline: 'none', transition: 'border-color 0.3s ease' };
-const submitButtonStyle = { padding: '12px', fontSize: '18px', fontWeight: '600', color: '#fff', backgroundColor: '#007bff', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'background-color 0.3s ease' };
-const sectionStyle = { marginTop: "20px" };
-const subsectionTitleStyle = { fontSize: "18px", fontWeight: "600", color: "#333" };
-const buttonGroupStyle = { display: "flex", flexWrap: "wrap", gap: "10px" };
-const buttonStyle = { padding: "10px 15px", fontSize: "14px", border: "1px solid #007bff", borderRadius: "4px", cursor: "pointer", transition: "background-color 0.3s ease, color 0.3s ease" };
-const checkboxGroupStyle = { display: "flex", flexDirection: "column", gap: "10px" };
-const customCheckboxContainerStyle = { display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" };
-const hiddenCheckboxStyle = { display: "none" };
-const customCheckboxStyle = { width: "20px", height: "20px", borderRadius: "4px", border: "2px solid #ccc", display: "flex", alignItems: "center", justifyContent: "center", transition: "background-color 0.3s ease, border-color 0.3s ease" };
-const checkmarkStyle = { color: "#fff", fontSize: "14px", fontWeight: "bold" };
-const checkboxLabelStyle = { fontSize: "16px", color: "#555" };
 const successModalStyle = { textAlign: "center", padding: "30px", borderRadius: "12px", boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)" };
 const successAnimationContainerStyle = { width: "80px", height: "80px", margin: "0 auto 20px", backgroundColor: "#2ecc71", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", animation: "scaleIn 0.5s ease-in-out" };
 const tickStyle = { fontSize: "40px", color: "#fff", animation: "fadeIn 0.5s ease-in-out" };
-const successTitleStyle = { fontSize: "24px", fontWeight: "600", color: "#333", marginBottom: "10px" };
-const successMessageStyle = { fontSize: "16px", color: "#555", marginBottom: "20px" };
+
 
 const keyframes = `
   @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }

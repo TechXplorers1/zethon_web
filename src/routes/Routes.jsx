@@ -65,10 +65,12 @@ const AppRoutes = () => {
             <Route path="/Contact" element={<Contact />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/adminpage" element={<AdminPage />} />
-            <Route path="/managerworksheet" element={<ManagerWorkSheet />} />
-            <Route path="/employees" element={<EmployeeData />} />
-            <Route path="/clientdashboard" element={<ClientDashboard />} />
+
+            <Route path="/clientdashboard" element={<ProtectedRoute allowedRoles={['client']}><ClientDashboard /></ProtectedRoute>} />
+            <Route path="/employees" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeData /></ProtectedRoute>} />
+            <Route path="/adminpage" element={<ProtectedRoute allowedRoles={['admin']}><AdminPage /></ProtectedRoute>} />
+            <Route path="/managerworksheet" element={<ProtectedRoute allowedRoles={['manager']}><ManagerWorkSheet /></ProtectedRoute>} />
+
             <Route element={<ServiceLayout />}>
 
               <Route path="/industries/bfsi" element={<BFSI />} />
@@ -101,14 +103,7 @@ const AppRoutes = () => {
 
               {/* DashBoards */}
               {/* --- Protected Routes with Role-Based Access --- */}
-              <Route path="/clientdashboard" element={<ProtectedRoute allowedRoles={['client']}><ClientDashboard /></ProtectedRoute>} />
-              {/* <Route path="/assetworksheet" element={<ProtectedRoute allowedRoles={['asset']}><AssetsWorksheet /></ProtectedRoute>} /> */}
-              {/* <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><Reports /></ProtectedRoute>} /> */}
-              <Route path="/employees" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeData /></ProtectedRoute>} />
-              {/* <Route path="/workgroups" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><WorkGroups /></ProtectedRoute>} /> */}
-              <Route path="/adminpage" element={<ProtectedRoute allowedRoles={['admin']}><AdminPage /></ProtectedRoute>} />
-              {/* <Route path="/adminworksheet" element={<ProtectedRoute allowedRoles={['admin']}><AdminWorksheet /></ProtectedRoute>} /> */}
-              <Route path="/managerworksheet" element={<ProtectedRoute allowedRoles={['manager']}><ManagerWorkSheet /></ProtectedRoute>} />
+              {/* Moved Dashboard Routes above */}
               {/* <Route path="/employee-registration-form" element={<ProtectedRoute allowedRoles={['admin']}><EmployeeRegistrationForm /></ProtectedRoute>} /> */}
               {/* <Route path="/employee-onboarding-sheet" element={<ProtectedRoute allowedRoles={['admin']}><EmployeeOnboardingWorkSheet /></ProtectedRoute>} /> */}
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />

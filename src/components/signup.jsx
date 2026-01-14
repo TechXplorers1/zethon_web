@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { FcGoogle } from "react-icons/fc";
-import { MdEmail } from "react-icons/md";
+import { MdEmail, MdArrowBack } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Card, Button, Form, InputGroup, Modal, Spinner } from 'react-bootstrap'; // Import Spinner
@@ -162,6 +162,10 @@ export default function SignupPage() {
   return (
     <>
       <div className="auth-page-wrapper">
+        <button className="auth-back-button" onClick={() => navigate('/')}>
+          <MdArrowBack size={20} />
+          Back to Home
+        </button>
         <div className="auth-card">
           <h3 className="text-center auth-title">Create an Account</h3>
           <Button

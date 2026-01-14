@@ -65,6 +65,8 @@
 
 .google-btn:hover {
   background-color: #f1f3f5;
+  color: #212529;
+  /* Ensure text remains dark on hover */
 }
 
 .or-divider {
@@ -177,6 +179,34 @@
 }
 
 
+
+/* Back Button Styles */
+.auth-back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #495057;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.auth-back-button:hover {
+  background-color: #fff;
+  color: #212529;
+  transform: translateX(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
 /* Dark Mode Styles */
 .dark-mode .auth-page-wrapper {
   background-color: #1a202c !important;
@@ -199,6 +229,8 @@
 
 .dark-mode .google-btn:hover {
   background-color: #4a5568 !important;
+  color: #ffffff !important;
+  /* Ensure text is white on hover */
 }
 
 .dark-mode .or-divider {
@@ -263,4 +295,15 @@
 
 .dark-mode .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
+
+.dark-mode .auth-back-button {
+  background: rgba(45, 55, 72, 0.9);
+  border-color: #4a5568;
+  color: #cbd5e1;
+}
+
+.dark-mode .auth-back-button:hover {
+  background-color: #4a5568;
+  color: #fff;
 }
