@@ -705,6 +705,21 @@ const ManagerWorkSheet = () => {
 
   // NEW: State for LLM response and loading status
   const [llmResponse, setLlmResponse] = useState('');
+
+  // --- NEW: Add Employee Modal States ---
+  const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
+  const [isCreatingEmployee, setIsCreatingEmployee] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    firstName: '',
+    lastName: '',
+    workEmail: '',
+    department: '',
+    role: 'employee',
+    accountStatus: 'Active',
+    temporaryPassword: '',
+    personalNumber: '',
+    dateOfJoin: '',
+  });
   const [isLoadingLLMResponse, setIsLoadingLLMResponse] = useState(false);
   const [newResumeFiles, setNewResumeFiles] = useState({});
 
@@ -804,6 +819,76 @@ const ManagerWorkSheet = () => {
   // ... (rest of the state declarations)
 
   // MODIFICATION: Add filter handler functions
+  // --- NEW: Add Employee Handlers ---
+  const handleCloseAddEmployeeModal = () => {
+    setIsAddEmployeeModalOpen(false);
+    setNewEmployee({
+      firstName: '',
+      lastName: '',
+      workEmail: '',
+      department: '',
+      role: 'employee',
+      accountStatus: 'Active',
+      temporaryPassword: '',
+      personalNumber: '',
+      dateOfJoin: '',
+    });
+  };
+
+  const handleNewEmployeeChange = (e) => {
+    const { name, value } = e.target;
+    setNewEmployee(prev => ({ ...prev, [name]: value }));
+  };
+
+  const generateTemporaryPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewEmployee(prev => ({ ...prev, temporaryPassword: password }));
+  };
+
+  const handleCreateEmployee = async (e) => {
+    e.preventDefault();
+    setIsCreatingEmployee(true);
+
+    try {
+      // 1. Create Auth User
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        newEmployee.workEmail,
+        newEmployee.temporaryPassword
+      );
+      const user = userCredential.user;
+
+      // 2. Save to Database
+      const newEmployeeData = {
+        ...newEmployee,
+        firebaseKey: user.uid,
+        roles: ['employee'], // Enforce role
+        createdAt: Date.now(),
+        createdBy: managerFirebaseKey // Track who created
+      };
+
+      await set(ref(database, `users/${user.uid}`), newEmployeeData);
+
+      // 3. Update local cache/state if needed
+      // Manually add to 'allEmployees' list so it appears in the list immediately
+      setAllEmployees(prev => [...prev, { ...newEmployeeData, fullName: `${newEmployee.firstName} ${newEmployee.lastName}` }]);
+
+      setSuccessMessage("Employee created successfully!");
+      setShowSuccessModal(true);
+      handleCloseAddEmployeeModal();
+
+    } catch (error) {
+      console.error("Error creating employee:", error);
+      alert(`Failed to create employee: ${error.message}`);
+    } finally {
+      setIsCreatingEmployee(false);
+    }
+  };
+
   const handleDateRangeChange = (e) => {
     setFilterDateRange(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -6994,6 +7079,63 @@ Please provide a summary no longer than 150 words.`;
 
 
       {/* Create New employee Account Modal */}
+      {isAddEmployeeModalOpen && (
+        <div className="modal-overlay open">
+          <div className="assign-modal-content">
+            <div className="assign-modal-header">
+              <h3 className="assign-modal-title">Add New Employee</h3>
+              <button className="assign-modal-close-button" onClick={handleCloseAddEmployeeModal}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateEmployee} className="client-preview-grid-container" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="form-row" style={{ display: 'flex', gap: '10px' }}>
+                <div className="assign-form-group" style={{ flex: 1 }}>
+                  <label>First Name</label>
+                  <input type="text" name="firstName" value={newEmployee.firstName} onChange={handleNewEmployeeChange} required />
+                </div>
+                <div className="assign-form-group" style={{ flex: 1 }}>
+                  <label>Last Name</label>
+                  <input type="text" name="lastName" value={newEmployee.lastName} onChange={handleNewEmployeeChange} required />
+                </div>
+              </div>
+
+              <div className="assign-form-group">
+                <label>Work Email</label>
+                <input type="email" name="workEmail" value={newEmployee.workEmail} onChange={handleNewEmployeeChange} required />
+              </div>
+
+              <div className="assign-form-group">
+                <label>Department</label>
+                <select name="department" value={newEmployee.department} onChange={handleNewEmployeeChange}>
+                  <option value="">Select Department</option>
+                  <option value="Development">Development</option>
+                  <option value="Design">Design</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales">Sales</option>
+                  <option value="HR">HR</option>
+                </select>
+              </div>
+
+              <div className="assign-form-group" style={{ position: 'relative' }}>
+                <label>Temporary Password</label>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <input type="text" name="temporaryPassword" value={newEmployee.temporaryPassword} onChange={handleNewEmployeeChange} required />
+                  <button type="button" onClick={generateTemporaryPassword} className="modal-assign-button" style={{ width: 'auto', padding: '0 10px', fontSize: '12px', minWidth: 'unset' }}>Generate</button>
+                </div>
+              </div>
+
+              <div className="assign-form-actions">
+                <button type="button" className="assign-form-button cancel" onClick={handleCloseAddEmployeeModal}>Cancel</button>
+                <button type="submit" className="assign-form-button assign" disabled={isCreatingEmployee}>
+                  {isCreatingEmployee ? 'Creating...' : 'Create Employee'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
