@@ -108,10 +108,8 @@ const ServicesForm = () => {
 
       console.log('New service registration saved to Firebase successfully.');
       setShowSuccessModal(true);
-      setTimeout(() => {
-        setShowSuccessModal(false);
-        navigate("/");
-      }, 3000);
+      // Removed auto-redirect to allow user to click "View Dashboard"
+
 
     } catch (error) {
       console.error("Failed to save to Firebase", error);
@@ -231,7 +229,7 @@ const ServicesForm = () => {
               </button>
             </div>
           </form>
-          <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)} centered>
+          <Modal show={showSuccessModal} onHide={() => { setShowSuccessModal(false); navigate('/'); }} centered>
             <Modal.Header closeButton />
             <Modal.Body style={successModalStyle}>
               <div style={successAnimationContainerStyle}>
@@ -239,6 +237,22 @@ const ServicesForm = () => {
               </div>
               <h4 className="success-modal-title">Form Successfully Submitted!</h4>
               <p className="success-modal-message">Your form has been submitted successfully.</p>
+              <div style={{ marginTop: '20px' }}>
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/clientdashboard')}
+                  style={{
+                    backgroundColor: '#00f0ff',
+                    border: 'none',
+                    color: '#000',
+                    fontWeight: 'bold',
+                    padding: '10px 20px',
+                    fontFamily: 'Orbitron, sans-serif'
+                  }}
+                >
+                  View Dashboard
+                </Button>
+              </div>
             </Modal.Body>
           </Modal>
         </div>

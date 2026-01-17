@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "zethontech-947c5"
-  }
+    "default": "zethonweb",
+    "production": "zethonweb"
+  },
+  "targets": {},
+  "etags": {}
 }

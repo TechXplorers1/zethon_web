@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Form, Button, Row, Col, Alert } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Alert, Modal } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import emailjs from 'emailjs-com';
 
 import PhoneInput from 'react-phone-number-input';
@@ -13,7 +14,9 @@ import { database } from '../../../firebase';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 const JobSupportContactForm = () => {
 
+  const navigate = useNavigate();
   const form = useRef(); // Create a ref for the form element
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     emailjs.init('I1UJMnujMWkyQsjA0');
@@ -198,6 +201,7 @@ const JobSupportContactForm = () => {
       setResumeFile(null);
 
       setSubmitStatus({ success: true, message: 'Form submitted successfully! Your application has been recorded.' });
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Submission Error:", error);
       setSubmitStatus({ success: false, message: 'Submission failed. Please try again.' });
@@ -229,7 +233,7 @@ const JobSupportContactForm = () => {
           </Alert>
         )}
 
-        <Form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '800px' }}>
+        <Form ref={form} onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '800px' }}>
           {/* Personal Information */}
           <h4 className="mb-3 border-bottom pb-2">Personal Information</h4>
           <Row>
@@ -749,6 +753,34 @@ const JobSupportContactForm = () => {
           </div>
         </Form>
       </Container>
+
+      {/* Success Modal */}
+      <Modal show={showSuccessModal} onHide={() => { setShowSuccessModal(false); navigate('/'); }} centered>
+        <Modal.Header closeButton />
+        <Modal.Body style={{ textAlign: "center", padding: "30px", borderRadius: "12px", boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)" }}>
+          <div style={{ width: "80px", height: "80px", margin: "0 auto 20px", backgroundColor: "#2ecc71", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: "40px", color: "#fff" }}>✅</span>
+          </div>
+          <h4 style={{ fontSize: "24px", fontWeight: "600", color: "#333", marginBottom: "10px" }}>Form Successfully Submitted!</h4>
+          <p style={{ fontSize: "16px", color: "#555", marginBottom: "20px" }}>Your application has been recorded.</p>
+          <div style={{ marginTop: '20px' }}>
+            <Button
+              variant="primary"
+              onClick={() => navigate('/clientdashboard')}
+              style={{
+                backgroundColor: '#00f0ff',
+                border: 'none',
+                color: '#000',
+                fontWeight: 'bold',
+                padding: '10px 20px',
+                fontFamily: 'Orbitron, sans-serif'
+              }}
+            >
+              View Dashboard
+            </Button>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
